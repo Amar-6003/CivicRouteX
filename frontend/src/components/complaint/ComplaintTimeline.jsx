@@ -6,23 +6,21 @@ const ComplaintTimeline = ({ timeline = [] }) => {
       {timeline.map((item, index) => {
         const isLast = index === timeline.length - 1;
 
+        const status = item.status?.replaceAll(
+          "_",
+          " "
+        );
+
         return (
           <div
             key={item.id || index}
             className="flex gap-4"
           >
             <div className="flex flex-col items-center">
-              {item.completed ? (
-                <CheckCircle2
-                  size={22}
-                  className="shrink-0 text-emerald-600"
-                />
-              ) : (
-                <Circle
-                  size={22}
-                  className="shrink-0 text-slate-300"
-                />
-              )}
+              <CheckCircle2
+                size={22}
+                className="shrink-0 text-emerald-600"
+              />
 
               {!isLast && (
                 <div className="my-1 h-12 w-px bg-slate-200" />
@@ -30,27 +28,19 @@ const ComplaintTimeline = ({ timeline = [] }) => {
             </div>
 
             <div className="pb-8">
-              <h4
-                className={`text-sm font-semibold ${
-                  item.completed
-                    ? "text-slate-900"
-                    : "text-slate-400"
-                }`}
-              >
-                {item.title}
+              <h4 className="text-sm font-semibold text-slate-900">
+                {status}
               </h4>
 
-              {item.date && (
-                <p className="mt-1 text-xs text-slate-500">
-                  {item.date}
-                </p>
-              )}
+              <p className="mt-1 text-xs text-slate-500">
+                {new Date(
+                  item.createdAt
+                ).toLocaleString()}
+              </p>
 
-              {item.description && (
-                <p className="mt-1 text-sm text-slate-500">
-                  {item.description}
-                </p>
-              )}
+              <p className="mt-1 text-sm text-slate-500">
+                {item.message}
+              </p>
             </div>
           </div>
         );

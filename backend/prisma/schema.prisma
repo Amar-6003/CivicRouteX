@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CITIZEN
+  ADMIN
+  AUTHORITY
+}
+
+enum ComplaintStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole @default(CITIZEN)
+
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique
+  verificationExpiresAt DateTime?
+
+  phone        String?
+  address      String?
+  city         String?
+  state        String?
+  pincode      String?
+  profilePhoto String?
+
+  complaints Complaint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Authority {
+  id Int @id @default(autoincrement())
+
+  registryKey String? @unique
+
+  name String
+
+  category String
+  level    String?
+
+  country String @default("India")
+
+  state    String?
+  district String?
+  city     String?
+
+  jurisdictionType String?
+
+  officialPortal   String?
+  submissionMethod String?
+  officialContact  String?
+
+  source String?
+
+  verified Boolean @default(false)
+  isActive Boolean @default(true)
+
+  complaints Complaint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([level])
+  @@index([state])
+  @@index([district])
+  @@index([city])
+  @@index([verified])
+}
+
+model LGDLocalBody {
+  id Int @id @default(autoincrement())
+
+  lgdCode Int @unique
+
+  stateCode Int
+  stateName String
+
+  name String
+
+  typeCode String?
+  typeName String?
+
+  entityCode Int?
+  entityName String?
+  entityType String?
+
+  coverageType String?
+
+  lastUpdated DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stateName])
+  @@index([entityName])
+  @@index([name])
+  @@index([typeName])
+}
+
+model Complaint {
+  id             Int    @id @default(autoincrement())
+  trackingNumber String @unique @default(cuid())
+
+  title       String
+  description String
+
+  category        String?
+  governmentLevel String?
+
+  status   ComplaintStatus   @default(SUBMITTED)
+  priority ComplaintPriority @default(MEDIUM)
+
+  city     String?
+  district String?
+  state    String?
+  address  String?
+
+  latitude  Float?
+  longitude Float?
+
+  routingStatus String?
+  routingReason String?
+
+  authorityId    Int?
+  authorityName  String?
+  authorityEmail String?
+
+  userId Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  authority Authority? @relation(fields: [authorityId], references: [id], onDelete: SetNull)
+
+  evidence Evidence[]
+
+  timeline ComplaintTimeline[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@index([governmentLevel])
+  @@index([status])
+  @@index([state])
+  @@index([district])
+  @@index([city])
+  @@index([authorityId])
+  @@index([createdAt])
+}
+
+model Evidence {
+  id          Int     @id @default(autoincrement())
+  fileName    String
+  fileUrl     String
+  fileType    String?
+  complaintId Int
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model ComplaintTimeline {
+  id          Int             @id @default(autoincrement())
+  status      ComplaintStatus
+  message     String
+  complaintId Int
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}

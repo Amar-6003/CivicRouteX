@@ -43,6 +43,7 @@ const categories = [
 ];
 
 const Home = () => {
+  const isLoggedIn = Boolean(localStorage.getItem("token"));
   return (
     <div className="min-h-screen overflow-hidden bg-[#edf5f1]">
       {/* ================= HERO ================= */}
@@ -61,7 +62,7 @@ const Home = () => {
         <Navbar transparent />
 
         {/* ================= HERO CONTENT ================= */}
-        <div className="relative z-10 mx-6 flex min-h-[620px] items-center px-2 pt-28 sm:px-6 lg:mx-12 lg:min-h-screen lg:px-0 lg:pt-16">
+        <div className="relative z-10 mx-6 flex min-h-[620px] items-center px-2 pt-10 sm:px-6 lg:mx-12 lg:min-h-screen lg:px-0 lg:pt-16">
           <div className="max-w-[560px]">
             {/* Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/90 px-4 py-2 text-sm font-semibold text-teal-700 shadow-sm backdrop-blur-sm">
@@ -87,7 +88,7 @@ const Home = () => {
             {/* Buttons */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                to="/register"
+                to={isLoggedIn ? "/complaints/create" : "/register"}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-teal-200 transition hover:-translate-y-1 hover:shadow-xl"
               >
                 Report an Issue
@@ -95,7 +96,7 @@ const Home = () => {
               </Link>
 
               <Link
-                to="/complaints"
+                to={isLoggedIn ? "/complaints" : "/login"}
                 className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
               >
                 Track Complaint
@@ -220,7 +221,7 @@ const Home = () => {
       </section>
 
       {/* ================= CTA ================= */}
-      <section className="relative overflow-hidden bg-[#f7faf8] py-16">
+      <section className="relative overflow-hidden bg-[#f7faf8] py-12">
         {/* Decorative blobs */}
         <div className="absolute -left-20 top-10 h-56 w-56 rounded-full bg-teal-100/50 blur-3xl" />
         <div className="absolute -right-20 bottom-0 h-56 w-56 rounded-full bg-emerald-100/50 blur-3xl" />
@@ -239,10 +240,10 @@ const Home = () => {
           </p>
 
           <Link
-            to="/register"
+            to={isLoggedIn ? "/complaints/create" : "/register"}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-teal-200 transition hover:-translate-y-1 hover:shadow-xl"
           >
-            Get Started
+            {isLoggedIn ? "Report an Issue" : "Get Started"}
             <ArrowRight size={18} />
           </Link>
         </div>

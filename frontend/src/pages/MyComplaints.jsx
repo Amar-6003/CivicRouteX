@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Filter,
@@ -7,12 +8,58 @@ import {
   Plus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import complaints from "../data/complaints";
+
+import { apiRequest } from "../services/api";
+import Loader from "../components/common/Loader";
 
 const MyComplaints = () => {
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const data = await apiRequest("/complaints");
+        setComplaints(data.complaints || []);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, []);
+
+  const filteredComplaints = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    return complaints.filter((complaint) => {
+      const matchesSearch =
+        !searchText ||
+        complaint.title?.toLowerCase().includes(searchText) ||
+        complaint.description?.toLowerCase().includes(searchText) ||
+        complaint.category?.toLowerCase().includes(searchText) ||
+        complaint.address?.toLowerCase().includes(searchText) ||
+        String(complaint.id).includes(searchText);
+
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        complaint.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [complaints, search, statusFilter]);
+
   return (
     <div className="page-bg min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl">
+
+        {/* Header */}
         <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-teal-600">
@@ -30,15 +77,18 @@ const MyComplaints = () => {
 
           <Link
             to="/complaints/create"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-100 transition hover:-translate-y-0.5 hover:from-teal-700 hover:to-emerald-700"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-100"
           >
             <Plus size={17} />
             New Complaint
           </Link>
         </div>
 
+        {/* Search + Filter */}
         <div className="dashboard-card mb-6 p-4">
           <div className="flex flex-col gap-3 md:flex-row">
+
+            {/* Search */}
             <div className="relative flex-1">
               <Search
                 size={18}
@@ -47,20 +97,76 @@ const MyComplaints = () => {
 
               <input
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search complaints..."
                 className="input-modern pl-11"
               />
             </div>
 
-            <button className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700">
-              <Filter size={17} />
-              Filter
-            </button>
+            {/* Filter */}
+            <div className="relative">
+              <Filter
+                size={17}
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="input-modern min-w-[190px] appearance-none pl-11 pr-10"
+              >
+                <option value="ALL">All Status</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
           </div>
+
+          {/* Result count */}
+          {!loading && !error && (
+            <div className="mt-3 text-xs text-slate-400">
+              Showing {filteredComplaints.length} of {complaints.length} complaints
+            </div>
+          )}
         </div>
 
+        {loading && <Loader />}
+
+        {error && (
+          <div className="rounded-xl bg-rose-50 p-4 text-sm text-rose-600">
+            {error}
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          filteredComplaints.length === 0 && (
+            <div className="dashboard-card p-10 text-center">
+              <FileText
+                className="mx-auto text-slate-300"
+                size={40}
+              />
+
+              <h3 className="mt-4 font-bold text-slate-800">
+                {complaints.length === 0
+                  ? "No complaints yet"
+                  : "No matching complaints"}
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-500">
+                {complaints.length === 0
+                  ? "Submit your first civic complaint."
+                  : "Try a different search term or status filter."}
+              </p>
+            </div>
+          )}
+
         <div className="grid gap-4">
-          {complaints.map((complaint) => (
+          {filteredComplaints.map((complaint) => (
             <ComplaintCard
               key={complaint.id}
               complaint={complaint}
@@ -73,14 +179,20 @@ const MyComplaints = () => {
 };
 
 const ComplaintCard = ({ complaint }) => {
-  const status = complaint.status?.toLowerCase();
+  const status = complaint.status;
 
   const statusStyle =
-    status === "resolved"
+    status === "RESOLVED"
       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-      : status === "rejected"
+      : status === "REJECTED"
         ? "bg-rose-50 text-rose-700 border-rose-100"
-        : "bg-amber-50 text-amber-700 border-amber-100";
+        : status === "IN_PROGRESS"
+          ? "bg-blue-50 text-blue-700 border-blue-100"
+          : status === "UNDER_REVIEW"
+            ? "bg-purple-50 text-purple-700 border-purple-100"
+            : "bg-amber-50 text-amber-700 border-amber-100";
+
+  const displayStatus = status?.replaceAll("_", " ");
 
   return (
     <Link
@@ -89,20 +201,21 @@ const ComplaintCard = ({ complaint }) => {
     >
       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 gap-4">
+
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50 text-teal-600">
             <FileText size={21} />
           </div>
 
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <h3 className="truncate font-bold text-slate-900 group-hover:text-teal-700">
+              <h3 className="truncate font-bold text-slate-900">
                 {complaint.title}
               </h3>
 
               <span
                 className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase ${statusStyle}`}
               >
-                {complaint.status}
+                {displayStatus}
               </span>
             </div>
 
@@ -111,11 +224,13 @@ const ComplaintCard = ({ complaint }) => {
             </p>
 
             <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
-              <span>{complaint.category}</span>
+              <span>
+                {complaint.category || "Public Services"}
+              </span>
 
               <span className="flex items-center gap-1">
                 <MapPin size={13} />
-                {complaint.location || "Location provided"}
+                {complaint.address || "Location provided"}
               </span>
             </div>
           </div>
@@ -123,11 +238,7 @@ const ComplaintCard = ({ complaint }) => {
 
         <div className="flex shrink-0 items-center gap-2 text-sm font-semibold text-teal-600">
           View Details
-
-          <ArrowRight
-            size={17}
-            className="transition group-hover:translate-x-1"
-          />
+          <ArrowRight size={17} />
         </div>
       </div>
     </Link>
