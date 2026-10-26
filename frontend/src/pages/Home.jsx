@@ -1,3 +1,4 @@
+
 import {
   ArrowRight,
   CheckCircle2,
@@ -5,6 +6,8 @@ import {
   MapPin,
   Search,
   ShieldCheck,
+  ExternalLink,
+  ClipboardList,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
@@ -14,63 +17,65 @@ const steps = [
   {
     icon: FileText,
     number: "01",
-    title: "Report",
-    text: "Describe your problem and upload supporting evidence.",
+    title: "Describe the issue",
+    text: "Explain the public problem clearly, including when and where it occurred.",
   },
   {
     icon: MapPin,
     number: "02",
-    title: "Route",
-    text: "Identify the appropriate authority based on issue and location.",
+    title: "Provide location and evidence",
+    text: "Add the affected location and supporting photos or files when available.",
   },
   {
     icon: Search,
     number: "03",
-    title: "Track",
-    text: "Follow your complaint and know what happens next.",
+    title: "Review your next steps",
+    text: "Check complaint details, follow status updates and look for relevant official filing guidance.",
   },
 ];
 
-const categories = [
-  "Infrastructure",
-  "Sanitation",
-  "Education",
-  "Healthcare",
-  "Transport",
-  "Electricity",
-  "Water",
-  "Public Services",
+const principles = [
+  {
+    icon: MapPin,
+    title: "Location matters",
+    text: "The responsible department can depend on the issue and the local jurisdiction where it occurred.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Check official sources",
+    text: "Before submitting personal information on an external website, verify that the destination belongs to the relevant authority.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Keep a reference",
+    text: "Use your complaint reference number to identify the complaint and find its details in CivicRouteX.",
+  },
 ];
 
 const Home = () => {
   const isLoggedIn = Boolean(localStorage.getItem("token"));
+
   return (
     <div className="min-h-screen overflow-hidden bg-[#edf5f1]">
-      {/* ================= HERO ================= */}
+      {/* HERO */}
       <section className="relative overflow-hidden bg-[#edf9f5] lg:min-h-screen">
-        {/* ================= DESKTOP IMAGE ================= */}
         <img
           src="/images/civicroute-banner.png"
           alt="CivicRouteX civic grievance platform"
-          className="absolute inset-0 hidden h-full w-full object-cover lg:object-fill object-center lg:block"
+          className="absolute inset-0 hidden h-full w-full object-cover object-center lg:block lg:object-fill"
         />
 
-        {/* Desktop left readability layer */}
         <div className="absolute inset-y-0 left-0 hidden w-[58%] bg-gradient-to-r from-[#edf9f5]/95 via-[#edf9f5]/80 to-transparent lg:block" />
 
-        {/* ================= NAVBAR ================= */}
         <Navbar transparent />
 
-        {/* ================= HERO CONTENT ================= */}
-        <div className="relative z-10 mx-6 flex min-h-[620px] items-center px-2 pt-10 sm:px-6 lg:mx-12 lg:min-h-screen lg:px-0 lg:pt-16">
+        <div className="relative z-10 mx-6 flex min-h-[540px] items-center px-2 pt-10 sm:px-6 lg:mx-12 lg:min-h-screen lg:px-0 lg:pt-16">
           <div className="max-w-[560px]">
-            {/* Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/90 px-4 py-2 text-sm font-semibold text-teal-700 shadow-sm backdrop-blur-sm">
               <ShieldCheck size={17} />
-              Smarter grievance reporting
+              A clearer path for civic grievances
             </div>
 
-            {/* Heading */}
             <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
               Report Problems.
               <span className="block bg-gradient-to-r from-teal-600 via-emerald-600 to-green-600 bg-clip-text pb-2 text-transparent">
@@ -78,14 +83,12 @@ const Home = () => {
               </span>
             </h1>
 
-            {/* Description */}
             <p className="mt-6 max-w-[540px] text-base leading-7 text-slate-600 sm:text-lg">
-              CivicRouteX helps citizens report public issues, provide evidence,
-              find the appropriate authority and track their complaints from
-              submission to resolution.
+              CivicRouteX helps citizens document public issues, organise
+              supporting evidence, review complaint progress and find relevant
+              official filing guidance.
             </p>
 
-            {/* Buttons */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 to={isLoggedIn ? "/complaints/create" : "/register"}
@@ -99,68 +102,60 @@ const Home = () => {
                 to={isLoggedIn ? "/complaints" : "/login"}
                 className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 font-semibold text-slate-700 shadow-sm transition hover:-translate-y-1 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
               >
-                Track Complaint
+                My Complaints
               </Link>
             </div>
 
-            {/* Features */}
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-600">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 size={17} className="text-emerald-500" />
-                Easy Reporting
-              </span>
-
-              <span className="flex items-center gap-2">
-                <CheckCircle2 size={17} className="text-emerald-500" />
-                Smart Routing
-              </span>
-
-              <span className="flex items-center gap-2">
-                <CheckCircle2 size={17} className="text-emerald-500" />
-                Complaint Tracking
-              </span>
+              {[
+                "Organised complaint details",
+                "Evidence attachments",
+                "Status history",
+              ].map((feature) => (
+                <span key={feature} className="flex items-center gap-2">
+                  <CheckCircle2
+                    size={17}
+                    className="shrink-0 text-emerald-500"
+                  />
+                  {feature}
+                </span>
+              ))}
             </div>
 
-            {/* Tagline */}
             <p className="mt-7 text-sm font-semibold text-teal-700/80">
               Cleaner Cities. Stronger Communities.
             </p>
           </div>
         </div>
 
-        {/* ================= MOBILE IMAGE ================= */}
-        <div className="relative mt-2 h-[280px] overflow-hidden lg:hidden">
+        {/* MOBILE BANNER */}
+        <div className="relative mt-2 h-[250px] overflow-hidden lg:hidden">
           <img
             src="/images/civicroute-banner.png"
             alt="CivicRouteX civic platform"
             className="absolute inset-0 h-full w-full object-cover object-right"
           />
-
-          {/* Fade image into page */}
           <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#edf9f5] to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#edf5f1] to-transparent" />
         </div>
       </section>
 
-      {/* ================= HOW IT WORKS ================= */}
+      {/* HOW IT WORKS */}
       <section className="bg-[#f7faf8] py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section heading */}
           <div className="mx-auto mb-10 max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-wider text-teal-600">
               How it works
             </p>
-
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              From problem to resolution
+              From problem to next steps
             </h2>
-
-            <p className="mt-3 text-slate-600">
-              A simple process designed around the citizen.
+            <p className="mt-3 leading-6 text-slate-600">
+              Keep the information about a civic issue organised and accessible
+              in one place.
             </p>
           </div>
 
-          {/* Steps */}
           <div className="grid gap-5 md:grid-cols-3">
             {steps.map(({ icon: Icon, number, title, text }) => (
               <div
@@ -171,16 +166,13 @@ const Home = () => {
                   <div className="rounded-xl bg-teal-50 p-3 transition group-hover:bg-teal-100">
                     <Icon size={23} className="text-teal-600" />
                   </div>
-
                   <span className="text-3xl font-bold text-slate-100">
                     {number}
                   </span>
                 </div>
-
                 <h3 className="text-xl font-semibold text-slate-900">
                   {title}
                 </h3>
-
                 <p className="mt-2 leading-6 text-slate-600">{text}</p>
               </div>
             ))}
@@ -188,68 +180,132 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ================= CIVIC ISSUES ================= */}
+      {/* PLATFORM PURPOSE */}
       <section className="bg-[#e4f0eb] py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Section heading */}
-          <div className="text-center">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
+          <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-teal-600">
-              Civic Issues
+              Why CivicRouteX?
             </p>
 
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              What can you report?
+              Make civic issues easier to understand and follow.
             </h2>
 
-            <p className="mx-auto mt-3 max-w-xl text-slate-600">
-              Report everyday public issues and help make your community better.
+            <p className="mt-4 leading-7 text-slate-600">
+              Public issues can involve different departments and levels of
+              government. CivicRouteX is designed to help citizens organise
+              the problem, record its location and understand possible next
+              steps without confusing a platform record with an official
+              government submission.
+            </p>
+
+            <Link
+              to={isLoggedIn ? "/complaints" : "/register"}
+              className="mt-6 inline-flex items-center gap-2 font-semibold text-teal-700 transition hover:text-teal-900"
+            >
+              {isLoggedIn ? "View My Complaints" : "Create an Account"}
+              <ArrowRight size={17} />
+            </Link>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm sm:col-span-2">
+              <div className="flex items-start gap-4">
+                <div className="rounded-xl bg-teal-50 p-3 text-teal-700">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">
+                    One place for complaint details
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Review the description, location, attached evidence and
+                    recorded status history of your complaint.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm">
+              <MapPin size={22} className="text-teal-700" />
+              <h3 className="mt-3 font-bold text-slate-900">
+                Location-aware context
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Location details can help identify which jurisdiction may be
+                relevant.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm">
+              <ShieldCheck size={22} className="text-teal-700" />
+              <h3 className="mt-3 font-bold text-slate-900">
+                Official-source awareness
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Check the destination before using an external government
+                filing service.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* IMPORTANT INFORMATION */}
+      <section className="bg-[#f7faf8] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-teal-600">
+              Know before you submit
+            </p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Clear information. Better follow-up.
+            </h2>
+            <p className="mt-3 leading-6 text-slate-600">
+              A few practical things to keep in mind when reporting a public
+              issue.
             </p>
           </div>
 
-          {/* Categories */}
-          <div className="mt-9 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {categories.map((category) => (
+          <div className="grid gap-5 md:grid-cols-3">
+            {principles.map(({ icon: Icon, title, text }) => (
               <div
-                key={category}
-                className="rounded-xl border border-white bg-white/80 p-5 text-center font-medium text-slate-700 shadow-sm backdrop-blur transition duration-200 hover:-translate-y-1 hover:border-teal-200 hover:bg-white hover:text-teal-700 hover:shadow-md"
+                key={title}
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
               >
-                {category}
+                <div className="mb-4 inline-flex rounded-xl bg-teal-50 p-3 text-teal-700">
+                  <Icon size={22} />
+                </div>
+                <h3 className="font-bold text-slate-900">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ================= CTA ================= */}
-      <section className="relative overflow-hidden bg-[#f7faf8] py-12">
-        {/* Decorative blobs */}
-        <div className="absolute -left-20 top-10 h-56 w-56 rounded-full bg-teal-100/50 blur-3xl" />
-        <div className="absolute -right-20 bottom-0 h-56 w-56 rounded-full bg-emerald-100/50 blur-3xl" />
-
-        <div className="relative mx-auto max-w-3xl px-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50">
-            <CheckCircle2 size={30} className="text-emerald-600" />
+          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <ExternalLink
+                size={20}
+                className="mt-0.5 shrink-0 text-amber-700"
+              />
+              <div>
+                <h3 className="font-bold text-amber-950">
+                  CivicRouteX is not a government department
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-amber-900">
+                  Submitting a complaint on CivicRouteX does not, by itself,
+                  mean it has been submitted to a government authority. Use
+                  the relevant official portal when required, and retain any
+                  acknowledgement issued by that portal.
+                </p>
+              </div>
+            </div>
           </div>
-
-          <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Have a problem that needs attention?
-          </h2>
-
-          <p className="mt-3 text-slate-600">
-            Let CivicRouteX help you find the right path.
-          </p>
-
-          <Link
-            to={isLoggedIn ? "/complaints/create" : "/register"}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-teal-200 transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            {isLoggedIn ? "Report an Issue" : "Get Started"}
-            <ArrowRight size={18} />
-          </Link>
         </div>
       </section>
 
-      {/* ================= FOOTER ================= */}
+      {/* FOOTER */}
       <Footer />
     </div>
   );

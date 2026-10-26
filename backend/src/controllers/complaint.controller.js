@@ -3,6 +3,7 @@ import prisma from "../config/prisma.js";
 import { detectCategory } from "../utils/complaintCategory.js";
 import { detectGovernmentLevel } from "../utils/complaintScope.js";
 import { routeComplaint } from "../services/routing.service.js";
+import { detectPriority } from "../utils/complaintPriority.js";
 
 const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
@@ -17,7 +18,6 @@ export const createComplaint = async (req, res) => {
     const {
       title,
       description,
-      priority,
       city,
       district,
       state,
@@ -26,7 +26,6 @@ export const createComplaint = async (req, res) => {
       longitude,
     } = req.body;
 
-    // Validate request fields before calling string methods.
     if (typeof title !== "string" || !title.trim()) {
       return res.status(400).json({
         success: false,
@@ -64,10 +63,11 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    const complaintPriority =
-      typeof priority === "string" && priority.trim()
-        ? priority.trim().toUpperCase()
-        : "MEDIUM";
+    // Clean the text BEFORE using it for priority detection.
+    const cleanedTitle = title.trim();
+    const cleanedDescription = description.trim();
+
+    const complaintPriority = detectPriority(cleanedTitle, cleanedDescription);
 
     if (!VALID_PRIORITIES.includes(complaintPriority)) {
       return res.status(400).json({
@@ -108,7 +108,6 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    // GPS coordinates must be supplied together.
     if ((parsedLatitude === null) !== (parsedLongitude === null)) {
       return res.status(400).json({
         success: false,
@@ -145,10 +144,8 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    const cleanedTitle = title.trim();
-    const cleanedDescription = description.trim();
-
     const category = detectCategory(cleanedTitle, cleanedDescription);
+
     const governmentLevel = detectGovernmentLevel(
       cleanedTitle,
       cleanedDescription,
@@ -179,7 +176,7 @@ export const createComplaint = async (req, res) => {
         ? `Complaint recorded and matched to ${routing.authority.name}. This does not confirm submission to the authority's official system.`
         : "Complaint recorded in CivicRouteX. A verified official authority or submission channel has not been confirmed.";
 
-    // The complaint and initial timeline are created atomically.
+    // Create complaint and initial timeline atomically.
     const complaint = await prisma.$transaction(async (tx) => {
       return tx.complaint.create({
         data: {
@@ -241,6 +238,8 @@ export const createComplaint = async (req, res) => {
               localBodyType: routing.authority.localBodyType,
               state: routing.authority.state,
               stateCode: routing.authority.stateCode,
+              officialPortal: routing.authority.officialPortal,
+              submissionMethod: routing.authority.submissionMethod,
             }
           : null,
         localBody: routing.localBody
@@ -284,32 +283,20 @@ export const getMyComplaints = async (req, res) => {
     }
 
     const complaints = await prisma.complaint.findMany({
-      where: {
-        userId,
-      },
-
+      where: { userId },
       include: {
         timeline: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
-
         evidence: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
       },
-
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return res.json({
       success: true,
-
       complaints,
     });
   } catch (error) {
@@ -317,7 +304,6 @@ export const getMyComplaints = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to fetch complaints.",
     });
   }
@@ -332,13 +318,11 @@ export const getMyComplaints = async (req, res) => {
 export const getComplaintById = async (req, res) => {
   try {
     const userId = Number(req.user?.id);
-
     const complaintId = Number(req.params.id);
 
     if (!Number.isInteger(userId)) {
       return res.status(401).json({
         success: false,
-
         message: "Authenticated user not found.",
       });
     }
@@ -346,7 +330,6 @@ export const getComplaintById = async (req, res) => {
     if (!Number.isInteger(complaintId)) {
       return res.status(400).json({
         success: false,
-
         message: "Invalid complaint ID.",
       });
     }
@@ -354,21 +337,14 @@ export const getComplaintById = async (req, res) => {
     const complaint = await prisma.complaint.findFirst({
       where: {
         id: complaintId,
-
         userId,
       },
-
       include: {
         timeline: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
-
         evidence: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -376,14 +352,12 @@ export const getComplaintById = async (req, res) => {
     if (!complaint) {
       return res.status(404).json({
         success: false,
-
         message: "Complaint not found.",
       });
     }
 
     return res.json({
       success: true,
-
       complaint,
     });
   } catch (error) {
@@ -391,7 +365,6 @@ export const getComplaintById = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to fetch complaint.",
     });
   }
@@ -406,13 +379,11 @@ export const getComplaintById = async (req, res) => {
 export const updateComplaint = async (req, res) => {
   try {
     const userId = Number(req.user?.id);
-
     const complaintId = Number(req.params.id);
 
     if (!Number.isInteger(userId)) {
       return res.status(401).json({
         success: false,
-
         message: "Authenticated user not found.",
       });
     }
@@ -420,7 +391,6 @@ export const updateComplaint = async (req, res) => {
     if (!Number.isInteger(complaintId)) {
       return res.status(400).json({
         success: false,
-
         message: "Invalid complaint ID.",
       });
     }
@@ -428,7 +398,6 @@ export const updateComplaint = async (req, res) => {
     const existingComplaint = await prisma.complaint.findFirst({
       where: {
         id: complaintId,
-
         userId,
       },
     });
@@ -436,54 +405,34 @@ export const updateComplaint = async (req, res) => {
     if (!existingComplaint) {
       return res.status(404).json({
         success: false,
-
         message: "Complaint not found.",
       });
     }
 
     const { title, description, priority } = req.body;
-
     const updateData = {};
 
-    /*
-     * TITLE
-     */
-
     if (title !== undefined && title !== null) {
-      const cleanedTitle = title.toString().trim();
-
-      if (!cleanedTitle) {
+      if (typeof title !== "string" || !title.trim()) {
         return res.status(400).json({
           success: false,
-
           message: "Complaint title cannot be empty.",
         });
       }
 
-      updateData.title = cleanedTitle;
+      updateData.title = title.trim();
     }
 
-    /*
-     * DESCRIPTION
-     */
-
     if (description !== undefined && description !== null) {
-      const cleanedDescription = description.toString().trim();
-
-      if (!cleanedDescription) {
+      if (typeof description !== "string" || !description.trim()) {
         return res.status(400).json({
           success: false,
-
           message: "Complaint description cannot be empty.",
         });
       }
 
-      updateData.description = cleanedDescription;
+      updateData.description = description.trim();
     }
-
-    /*
-     * PRIORITY
-     */
 
     if (priority !== undefined && priority !== null) {
       const cleanedPriority = priority.toString().trim().toUpperCase();
@@ -491,7 +440,6 @@ export const updateComplaint = async (req, res) => {
       if (!VALID_PRIORITIES.includes(cleanedPriority)) {
         return res.status(400).json({
           success: false,
-
           message:
             "Invalid priority. Allowed values: LOW, MEDIUM, HIGH, CRITICAL.",
         });
@@ -503,36 +451,25 @@ export const updateComplaint = async (req, res) => {
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-
         message: "No valid fields provided for update.",
       });
     }
 
     const complaint = await prisma.complaint.update({
-      where: {
-        id: complaintId,
-      },
-
+      where: { id: complaintId },
       data: updateData,
-
       include: {
         timeline: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
-
         evidence: {
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
 
     return res.json({
       success: true,
-
       complaint,
     });
   } catch (error) {
@@ -540,7 +477,6 @@ export const updateComplaint = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to update complaint.",
     });
   }
@@ -555,13 +491,11 @@ export const updateComplaint = async (req, res) => {
 export const deleteComplaint = async (req, res) => {
   try {
     const userId = Number(req.user?.id);
-
     const complaintId = Number(req.params.id);
 
     if (!Number.isInteger(userId)) {
       return res.status(401).json({
         success: false,
-
         message: "Authenticated user not found.",
       });
     }
@@ -569,7 +503,6 @@ export const deleteComplaint = async (req, res) => {
     if (!Number.isInteger(complaintId)) {
       return res.status(400).json({
         success: false,
-
         message: "Invalid complaint ID.",
       });
     }
@@ -577,7 +510,6 @@ export const deleteComplaint = async (req, res) => {
     const existingComplaint = await prisma.complaint.findFirst({
       where: {
         id: complaintId,
-
         userId,
       },
     });
@@ -585,20 +517,16 @@ export const deleteComplaint = async (req, res) => {
     if (!existingComplaint) {
       return res.status(404).json({
         success: false,
-
         message: "Complaint not found.",
       });
     }
 
     await prisma.complaint.delete({
-      where: {
-        id: complaintId,
-      },
+      where: { id: complaintId },
     });
 
     return res.json({
       success: true,
-
       message: "Complaint deleted successfully.",
     });
   } catch (error) {
@@ -606,16 +534,17 @@ export const deleteComplaint = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to delete complaint.",
     });
   }
 };
 
 /*
+ * =========================================================
  * GET COMPLAINT BY TRACKING NUMBER
- * Authenticated citizens can only view their own complaints.
+ * =========================================================
  */
+
 export const getComplaintByTrackingNumber = async (req, res) => {
   try {
     const userId = Number(req.user?.id ?? req.user?.userId);
@@ -668,9 +597,11 @@ export const getComplaintByTrackingNumber = async (req, res) => {
 };
 
 /*
- * UPDATE COMPLAINT STATUS
- * ADMIN only. A status change and timeline entry are atomic.
+ * =========================================================
+ * UPDATE COMPLAINT STATUS (ADMIN ONLY)
+ * =========================================================
  */
+
 export const updateComplaintStatus = async (req, res) => {
   try {
     const userId = Number(req.user?.id ?? req.user?.userId);
@@ -730,13 +661,11 @@ export const updateComplaintStatus = async (req, res) => {
       });
 
       if (!existing) {
-        const notFound = new Error("COMPLAINT_NOT_FOUND");
-        throw notFound;
+        throw new Error("COMPLAINT_NOT_FOUND");
       }
 
       if (existing.status === nextStatus) {
-        const unchanged = new Error("STATUS_UNCHANGED");
-        throw unchanged;
+        throw new Error("STATUS_UNCHANGED");
       }
 
       await tx.complaint.update({

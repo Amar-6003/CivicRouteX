@@ -1,9 +1,7 @@
-
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import fs from "fs";
-import path from "path";
+import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 
 import prisma from "../config/prisma.js";
 import { sendVerificationEmail } from "../services/email.service.js";
@@ -16,7 +14,7 @@ const generateToken = (user) =>
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 
 const profileSelect = {
@@ -88,9 +86,7 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationExpiresAt = new Date(
-      Date.now() + 24 * 60 * 60 * 1000
-    );
+    const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.create({
       data: {
@@ -103,11 +99,9 @@ export const register = async (req, res) => {
       },
     });
 
-    const frontendUrl =
-      process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
-    const verificationUrl =
-      `${frontendUrl}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     try {
       await sendVerificationEmail({
@@ -420,8 +414,7 @@ export const updateProfile = async (req, res) => {
     if (cleanPincode && !/^[1-9]\d{5}$/.test(cleanPincode)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Enter a valid 6-digit Indian PIN code starting with 1–9.",
+        message: "Enter a valid 6-digit Indian PIN code starting with 1–9.",
       });
     }
 
@@ -462,11 +455,16 @@ export const uploadProfilePhoto = async (req, res) => {
       });
     }
 
-    const profilePhoto = `/uploads/profiles/${req.file.filename}`;
+    const asset = await uploadBufferToCloudinary(req.file.buffer, {
+      folder: "civicroutex/profiles",
+      resourceType: "image",
+    });
 
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { profilePhoto },
+      data: {
+        profilePhoto: asset.secure_url,
+      },
       select: profileSelect,
     });
 
@@ -477,10 +475,6 @@ export const uploadProfilePhoto = async (req, res) => {
       user,
     });
   } catch (error) {
-    if (req.file?.path) {
-      await fs.promises.unlink(req.file.path).catch(() => {});
-    }
-
     console.error("Upload profile photo error:", error);
 
     return res.status(500).json({
@@ -492,34 +486,13 @@ export const uploadProfilePhoto = async (req, res) => {
 
 export const removeProfilePhoto = async (req, res) => {
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { profilePhoto: true },
-    });
-
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { profilePhoto: null },
+      data: {
+        profilePhoto: null,
+      },
       select: profileSelect,
     });
-
-    const oldPhoto = existingUser?.profilePhoto;
-
-    if (oldPhoto?.startsWith("/uploads/profiles/")) {
-      const filename = path.basename(oldPhoto);
-      const filePath = path.join(
-        process.cwd(),
-        "uploads",
-        "profiles",
-        filename
-      );
-
-      await fs.promises.unlink(filePath).catch((error) => {
-        if (error.code !== "ENOENT") {
-          console.error("Could not delete old profile photo:", error);
-        }
-      });
-    }
 
     return res.json({
       success: true,

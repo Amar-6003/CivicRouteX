@@ -1,77 +1,49 @@
-import "dotenv/config";
 
+import "dotenv/config";
+import { syncLGDBatch } from "../src/services/lgd.service.js";
 import prisma from "../src/config/prisma.js";
 
-import {
-  syncLGDBatch,
-} from "../src/services/lgd.service.js";
+const state = process.argv[2] || undefined;
+const batchSize = 500;
+let offset = 0;
+let totalFetched = 0;
+let totalValid = 0;
+let totalInserted = 0;
 
-const BATCH_SIZE = 1000;
-
-const sleep = (ms) =>
-  new Promise((resolve) =>
-    setTimeout(resolve, ms)
-  );
-
-const main = async () => {
-  let offset = 0;
-  let totalSynced = 0;
-  let totalAvailable = null;
-
-  console.log(
-    "Starting India-wide LGD sync..."
-  );
-
+try {
   while (true) {
-    console.log(
-      `Fetching offset ${offset}...`
-    );
+    const result = await syncLGDBatch({
+      state,
+      limit: batchSize,
+      offset
+    });
 
-    const result =
-      await syncLGDBatch({
-        limit: BATCH_SIZE,
-        offset,
-      });
+    totalFetched += result.fetched;
+    totalValid += result.valid;
+    totalInserted += result.inserted;
 
-    if (totalAvailable === null) {
-      totalAvailable = result.total;
-    }
+    console.log({
+      offset,
+      fetched: result.fetched,
+      valid: result.valid,
+      inserted: result.inserted
+    });
 
-    totalSynced += result.synced;
-
-    console.log(
-      `Fetched: ${result.fetched}, synced: ${result.synced}, total available: ${result.total}`
-    );
-
-    if (result.fetched === 0) {
+    if (!result.hasMore || result.fetched === 0) {
       break;
     }
 
-    offset += result.fetched;
-
-    if (
-      offset >= result.total
-    ) {
-      break;
-    }
-
-    await sleep(250);
+    offset = result.nextOffset;
   }
 
-  console.log(
-    `LGD sync completed. Total synced: ${totalSynced}`
-  );
-};
-
-main()
-  .catch((error) => {
-    console.error(
-      "LGD sync failed:",
-      error
-    );
-
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
+  console.log("LGD sync completed:", {
+    totalFetched,
+    totalValid,
+    totalInserted
   });
+} catch (error) {
+  console.error("LGD sync failed:", error.message);
+  process.exitCode = 1;
+} finally {
+  await prisma.$disconnect();
+}

@@ -12,47 +12,32 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-const storage = multer.diskStorage({
-  destination: "uploads/",
-
-  filename: (req, file, cb) => {
-    const safeName =
-      file.originalname
-        .replace(/[^a-zA-Z0-9._-]/g, "_");
-
-    const uniqueName =
-      `${Date.now()}-${safeName}`;
-
-    cb(null, uniqueName);
-  },
-});
+const allowedTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
 
   limits: {
     fileSize: 10 * 1024 * 1024,
+    files: 5,
   },
 
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-    ];
-
-    if (
-      allowedTypes.includes(file.mimetype)
-    ) {
-      cb(null, true);
-    } else {
-      cb(
-        new Error(
-          "Only JPG, PNG, WEBP and PDF files are allowed."
-        )
-      );
+  fileFilter: (_req, file, callback) => {
+    if (allowedTypes.has(file.mimetype)) {
+      return callback(null, true);
     }
+
+    const error = new Error(
+      "Only JPG, PNG, WEBP and PDF files are allowed."
+    );
+
+    error.status = 400;
+    callback(error);
   },
 });
 
