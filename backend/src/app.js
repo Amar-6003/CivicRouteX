@@ -58,7 +58,7 @@ app.use((error, req, res, next) => {
   if (error?.code === "LIMIT_FILE_SIZE") {
     return res.status(400).json({
       success: false,
-      message: "File size must be 5 MB or smaller.",
+      message: "File size must be 10 MB or smaller.",
     });
   }
 

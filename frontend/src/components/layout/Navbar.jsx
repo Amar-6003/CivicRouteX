@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Menu,
@@ -55,7 +54,7 @@ const Navbar = ({ transparent = false }) => {
   const userName = user?.name || "Citizen";
   const userInitial = userName.trim().charAt(0).toUpperCase() || "C";
   const photo = getPhotoUrl(
-    user?.profilePhoto || user?.avatar || user?.photoUrl || user?.profileImage
+    user?.profilePhoto || user?.avatar || user?.photoUrl || user?.profileImage,
   );
 
   useEffect(() => {
@@ -142,10 +141,7 @@ const Navbar = ({ transparent = false }) => {
         </Link>
 
         <nav className="hidden items-center gap-2 md:flex">
-          <Link
-            to="/"
-            className={linkClass(location.pathname === "/")}
-          >
+          <Link to="/" className={linkClass(location.pathname === "/")}>
             <House size={17} />
             Home
           </Link>
@@ -267,11 +263,7 @@ const Navbar = ({ transparent = false }) => {
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  onClick={closeMenu}
-                  className={linkClass()}
-                >
+                <Link to="/login" onClick={closeMenu} className={linkClass()}>
                   <LogIn size={17} />
                   Login
                 </Link>

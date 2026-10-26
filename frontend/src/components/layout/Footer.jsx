@@ -1,3 +1,4 @@
+
 import {
   BriefcaseBusiness,
   Code2,
@@ -7,13 +8,10 @@ import {
 
 const Footer = () => {
   return (
-    <div className="pt-6">
-      {/* Divider */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-
-      <footer className="flex flex-col items-center py-6 text-center">
+    <div className="bg-[#edf5f1] pt-6">
+      <footer className="flex flex-col items-center px-4 pb-5 text-center">
         {/* Social / Developer Links */}
-        <nav>
+        <nav aria-label="Developer social links">
           <div className="flex items-center gap-3">
             {/* LinkedIn */}
             <a
@@ -21,7 +19,8 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-600"
+              title="LinkedIn"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-100 bg-white text-slate-500 shadow-sm transition-colors duration-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
             >
               <BriefcaseBusiness size={18} />
             </a>
@@ -32,7 +31,8 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-600"
+              title="GitHub"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-100 bg-white text-slate-500 shadow-sm transition-colors duration-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
             >
               <Code2 size={18} />
             </a>
@@ -43,30 +43,37 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Portfolio"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-600"
+              title="Portfolio"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-100 bg-white text-slate-500 shadow-sm transition-colors duration-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
             >
               <Globe size={18} />
             </a>
           </div>
         </nav>
 
-        {/* Credit */}
-        <p className="mt-4 text-sm text-slate-400">
+        {/* Copyright */}
+        <p className="mt-4 text-sm text-slate-500">
           © {new Date().getFullYear()} CivicRouteX · Built with ❤️ by{" "}
           <a
             href="https://amarfolio.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-medium text-teal-600 transition hover:text-teal-500"
+            className="inline-flex items-center gap-1 font-semibold text-teal-700 transition-colors duration-200 hover:text-teal-900"
           >
             CodeWithAmar
             <ExternalLink size={11} />
           </a>
         </p>
 
-        {/* Group Project Note */}
-        <p className="mt-1 text-sm text-slate-400">
-          A collaborative project for smarter public grievance management.
+        {/* Project Note */}
+        <p className="mt-1 max-w-xl text-sm leading-6 text-slate-500">
+          Connecting citizens with the right direction for civic grievances.
+        </p>
+
+        {/* Project Purpose */}
+        <p className="mt-2 text-sm leading-5 text-slate-400">
+          Built to support transparent reporting, informed citizens and
+          better public grievance management.
         </p>
       </footer>
     </div>

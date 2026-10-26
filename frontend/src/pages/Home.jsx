@@ -160,13 +160,13 @@ const Home = () => {
             {steps.map(({ icon: Icon, number, title, text }) => (
               <div
                 key={number}
-                className="group rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg"
+                className="group rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg"
               >
                 <div className="mb-5 flex items-center justify-between">
                   <div className="rounded-xl bg-teal-50 p-3 transition group-hover:bg-teal-100">
                     <Icon size={23} className="text-teal-600" />
                   </div>
-                  <span className="text-3xl font-bold text-slate-100">
+                  <span className="text-3xl font-bold text-slate-300">
                     {number}
                   </span>
                 </div>
@@ -210,7 +210,7 @@ const Home = () => {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm sm:col-span-2">
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg sm:col-span-2">
               <div className="flex items-start gap-4">
                 <div className="rounded-xl bg-teal-50 p-3 text-teal-700">
                   <FileText size={22} />
@@ -227,7 +227,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm">
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <MapPin size={22} className="text-teal-700" />
               <h3 className="mt-3 font-bold text-slate-900">
                 Location-aware context
@@ -238,7 +238,7 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm">
+            <div className="rounded-2xl border border-white bg-white/80 p-5 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <ShieldCheck size={22} className="text-teal-700" />
               <h3 className="mt-3 font-bold text-slate-900">
                 Official-source awareness
@@ -272,7 +272,7 @@ const Home = () => {
             {principles.map(({ icon: Icon, title, text }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg"
               >
                 <div className="mb-4 inline-flex rounded-xl bg-teal-50 p-3 text-teal-700">
                   <Icon size={22} />
@@ -283,7 +283,7 @@ const Home = () => {
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
+          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 transition-shadow duration-300 hover:shadow-md sm:p-6">
             <div className="flex items-start gap-3">
               <ExternalLink
                 size={20}

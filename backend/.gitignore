@@ -3,3 +3,6 @@ node_modules/
 .env
 /generated/prisma
 uploads/
+# Google OAuth credentials
+backend/credentials.json
+backend/token.json

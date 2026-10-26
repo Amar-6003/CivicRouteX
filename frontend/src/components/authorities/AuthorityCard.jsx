@@ -1,9 +1,13 @@
+
 import {
   MapPin,
   Landmark,
   BadgeCheck,
   ExternalLink,
   Globe,
+  Building2,
+  Phone,
+  ShieldCheck,
 } from "lucide-react";
 
 const isValidHttpUrl = (value) => {
@@ -11,38 +15,75 @@ const isValidHttpUrl = (value) => {
 
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
+    return (
+      (url.protocol === "https:" || url.protocol === "http:") &&
+      !url.username &&
+      !url.password
+    );
   } catch {
     return false;
   }
 };
 
 export default function AuthorityCard({ authority }) {
-  const name = authority?.name || "Unnamed local body";
+  const isLgdRecord =
+    authority?.lgdCode !== undefined &&
+    authority?.lgdCode !== null;
 
-  const type =
-    authority?.typeName || authority?.type || "Local government body";
+  const name = authority?.name || "Unnamed government body";
 
-  const state = authority?.stateName || authority?.state || "";
+  const type = isLgdRecord
+    ? authority?.typeName ||
+      authority?.type ||
+      authority?.entityType ||
+      "Local government body"
+    : authority?.category || "Government authority";
 
-  const district = authority?.districtName || authority?.district || "";
+  const level = authority?.level || "";
 
-  const source = authority?.source || "Local Government Directory (LGD)";
+  const state =
+    authority?.stateName || authority?.state || "";
+
+  const district =
+    authority?.districtName || authority?.district || "";
+
+  const city = authority?.city || "";
+
+  const location = [city, district, state]
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .join(", ");
+
+  const source = isLgdRecord
+    ? authority?.source || "Local Government Directory (LGD)"
+    : authority?.source || "Authority directory";
 
   const portal = authority?.officialPortal || authority?.website || null;
 
-  const verified = authority?.verified === true;
+  // An LGD record verifies directory data, not portal ownership.
+  const verified = isLgdRecord
+    ? false
+    : authority?.verified === true;
 
   const showPortal = verified && isValidHttpUrl(portal);
+
+  const contact =
+    !isLgdRecord && typeof authority?.officialContact === "string"
+      ? authority.officialContact.trim()
+      : "";
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-teal-200 hover:shadow-md">
       <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500" />
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-teal-700">
-            <Landmark size={19} />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-teal-700">
+            {isLgdRecord ? (
+              <Building2 size={21} />
+            ) : (
+              <Landmark size={21} />
+            )}
           </div>
 
           <span
@@ -52,43 +93,73 @@ export default function AuthorityCard({ authority }) {
                 : "bg-slate-100 text-slate-600"
             }`}
           >
-            {verified && <BadgeCheck size={12} />}
-            {verified ? "Verified" : "Directory record"}
+            {verified ? (
+              <BadgeCheck size={12} />
+            ) : (
+              <Landmark size={12} />
+            )}
+            {verified
+              ? "Verified authority"
+              : isLgdRecord
+                ? "LGD record"
+                : "Unverified authority"}
           </span>
         </div>
 
-        <h3 className="mt-3 line-clamp-2 text-sm font-bold leading-5 text-slate-800">
+        <h3 className="mt-4 break-words text-base font-bold leading-6 text-slate-800">
           {name}
         </h3>
 
-        <p className="mt-1 text-xs leading-5 text-slate-500">{type}</p>
+        <p className="mt-1 text-sm leading-5 text-slate-500">
+          {type}
+        </p>
 
-        {(state || district) && (
+        {level && (
+          <p className="mt-2 text-xs font-medium text-teal-700">
+            Government level: {level}
+          </p>
+        )}
+
+        {location && (
           <div className="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-600">
-            <MapPin size={14} className="mt-0.5 shrink-0 text-teal-600" />
-
-            <span>
-              {[district, state]
-                .filter(Boolean)
-                .filter(
-                  (value, index, values) => values.indexOf(value) === index,
-                )
-                .join(", ")}
-            </span>
+            <MapPin
+              size={15}
+              className="mt-0.5 shrink-0 text-teal-600"
+            />
+            <span>{location}</span>
           </div>
         )}
 
-        {authority?.lgdCode && (
-          <p className="mt-2 text-[11px] text-slate-400">
+        {authority?.lgdCode != null && (
+          <p className="mt-2 text-xs text-slate-400">
             LGD Code: {authority.lgdCode}
           </p>
         )}
 
-        <div className="mt-auto pt-4">
-          <div className="mb-3 flex items-center gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-500">
-            <BadgeCheck size={13} className="shrink-0 text-teal-600" />
+        {contact && (
+          <div className="mt-3 flex items-start gap-2 break-words text-xs leading-5 text-slate-600">
+            <Phone
+              size={14}
+              className="mt-0.5 shrink-0 text-teal-600"
+            />
+            <span>{contact}</span>
+          </div>
+        )}
 
-            <span className="line-clamp-2">Source: {source}</span>
+        <div className="mt-auto pt-5">
+          <div className="mb-3 flex items-start gap-2 border-t border-slate-100 pt-3 text-[11px] leading-5 text-slate-500">
+            {verified ? (
+              <ShieldCheck
+                size={14}
+                className="mt-0.5 shrink-0 text-emerald-600"
+              />
+            ) : (
+              <Landmark
+                size={14}
+                className="mt-0.5 shrink-0 text-slate-400"
+              />
+            )}
+            <span className="break-words">Source: {source}</span>
           </div>
 
           {showPortal ? (
@@ -96,14 +167,14 @@ export default function AuthorityCard({ authority }) {
               href={portal}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-teal-700"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-3 py-3 text-xs font-semibold text-white transition hover:bg-teal-700"
             >
-              <Globe size={14} />
+              <Globe size={15} />
               Official Website
               <ExternalLink size={13} />
             </a>
           ) : (
-            <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-center text-[11px] leading-4 text-amber-800">
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-center text-xs leading-5 text-amber-800">
               Official complaint portal not verified
             </div>
           )}
