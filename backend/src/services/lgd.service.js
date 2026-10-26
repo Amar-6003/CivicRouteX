@@ -175,14 +175,17 @@ export const listLocalBodies = async ({
       : {}),
   };
 
-  const [localBodies, total] = await prisma.$transaction([
+  const [localBodies, total] = await Promise.all([
     prisma.lGDLocalBody.findMany({
       where: filters,
       orderBy: [{ stateName: "asc" }, { name: "asc" }, { lgdCode: "asc" }],
       skip: (safePage - 1) * safeLimit,
       take: safeLimit,
     }),
-    prisma.lGDLocalBody.count({ where: filters }),
+
+    prisma.lGDLocalBody.count({
+      where: filters,
+    }),
   ]);
 
   return {
